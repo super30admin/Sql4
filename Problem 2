@@ -1,0 +1,31 @@
+# League Statistics
+
+WITH TeamStats AS (
+    SELECT team_id, team_name,
+           COUNT(*) AS matches_played,
+           SUM(CASE WHEN team_id = home_team_id THEN home_team_goals ELSE away_team_goals END) AS goal_for,
+           SUM(CASE WHEN team_id = home_team_id THEN away_team_goals ELSE home_team_goals END) AS goal_against
+    FROM Teams
+    LEFT JOIN Matches
+    ON team_id = home_team_id OR team_id = away_team_id
+    GROUP BY team_id, team_name
+),
+MatchPoints AS (
+    SELECT team_id,
+           SUM(CASE WHEN team_id = home_team_id AND home_team_goals > away_team_goals THEN 3
+                    WHEN team_id = away_team_id AND away_team_goals > home_team_goals THEN 3
+                    WHEN home_team_goals = away_team_goals THEN 1
+                    ELSE 0 END) AS points
+    FROM Matches
+    GROUP BY team_id
+)
+SELECT ts.team_name, 
+       COALESCE(matches_played, 0) AS matches_played,
+       COALESCE(points, 0) AS points,
+       COALESCE(goal_for, 0) AS goal_for,
+       COALESCE(goal_against, 0) AS goal_against,
+       COALESCE(goal_for, 0) - COALESCE(goal_against, 0) AS goal_diff
+FROM TeamStats ts
+LEFT JOIN MatchPoints mp
+ON ts.team_id = mp.team_id
+ORDER BY points DESC, goal_diff DESC, team_name;

@@ -1,0 +1,37 @@
+# The Number of Seniors and Juniors to Join the Company II
+
+WITH SeniorHiring AS (
+    SELECT employee_id, salary
+    FROM Candidates
+    WHERE experience = 'Senior'
+    ORDER BY salary
+),
+JuniorHiring AS (
+    SELECT employee_id, salary
+    FROM Candidates
+    WHERE experience = 'Junior'
+    ORDER BY salary
+)
+, SeniorBudget AS (
+    SELECT employee_id, salary, SUM(salary) OVER (ORDER BY salary) AS running_sum
+    FROM SeniorHiring
+),
+JuniorBudget AS (
+    SELECT employee_id, salary, SUM(salary) OVER (ORDER BY salary) AS running_sum
+    FROM JuniorHiring
+)
+, SeniorSelection AS (
+    SELECT employee_id
+    FROM SeniorBudget
+    WHERE running_sum <= 70000
+),
+JuniorSelection AS (
+    SELECT employee_id
+    FROM JuniorBudget
+    WHERE running_sum <= (70000 - (SELECT MAX(running_sum) FROM SeniorBudget))
+)
+SELECT employee_id
+FROM SeniorSelection
+UNION ALL
+SELECT employee_id
+FROM JuniorSelection;
