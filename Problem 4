@@ -1,0 +1,16 @@
+# Friend Requests II 
+
+SELECT id, num
+FROM (
+    SELECT id, num, DENSE_RANK() OVER (ORDER BY num DESC) AS rnk
+    FROM (
+        SELECT id, COUNT(*) AS num
+        FROM (
+            SELECT requester_id AS id FROM RequestAccepted
+            UNION ALL
+            SELECT accepter_id AS id FROM RequestAccepted
+        ) combined
+        GROUP BY id
+    ) friends_count
+) ranked
+WHERE rnk = 1;
