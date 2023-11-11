@@ -1,0 +1,34 @@
+# Write your MySQL query statement below
+with running_salary as 
+(
+    select *,
+    sum(salary)over(partition by experience order by salary) as running_salary
+    from Candidates
+),
+senior as 
+(
+    select
+    'Senior' as experience,
+    count(employee_id) as accepted_candidates,
+    ifnull(max(running_salary), 0) as cost
+    from running_salary
+    where experience = 'Senior'
+    and running_salary <= 70000
+),
+junior as 
+(
+    select
+    'Junior' as experience,
+    count(employee_id) as accepted_candidates,
+    ifnull(max(running_salary), 0) as cost
+    from running_salary
+    where experience = 'Junior'
+    and running_salary <= 70000 - (select cost from senior)
+
+)
+
+select experience, accepted_candidates
+from senior
+union all
+select experience, accepted_candidates
+from junior
