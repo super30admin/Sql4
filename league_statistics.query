@@ -1,0 +1,38 @@
+# Write your MySQL query statement below
+with home_stats as (
+select h.home_team_id, sum(h.home_team_goals) as home_team_goals, count(*) as home_matches_played, sum(h.away_team_goals) as goal_scored_against1,
+sum(
+  case
+    when h.home_team_goals > h.away_team_goals then 3
+    when h.home_team_goals < h.away_team_goals then 0
+    else 1
+  end
+) as home_team_points
+from Matches h
+group by h.home_team_id),
+away_stats as (select a.away_team_id, sum(a.away_team_goals) as away_team_goals, count(*) as away_matches_played, sum(a.home_team_goals) as goal_scored_against2,
+sum(
+  case
+    when a.away_team_goals > a.home_team_goals then 3
+    when a.away_team_goals < a.home_team_goals then 0
+    else 1
+  end
+) as away_team_points
+from Matches a
+group by a.away_team_id)
+
+select team_name, matches_played, points, goal_for, goal_against, (goal_for - goal_against) as goal_diff 
+from
+(select home_team_id as team_id, (home_matches_played + away_matches_played) as matches_played, (home_team_points + away_team_points) as points, (home_team_goals + away_team_goals) as goal_for,  (goal_scored_against1 + goal_scored_against2) as goal_against
+from home_stats
+left join away_stats
+on home_team_id=away_team_id
+union
+select home_team_id as team_id, (home_matches_played + away_matches_played) as matches_played, (home_team_points + away_team_points) as points, (home_team_goals + away_team_goals) as goal_for,  (goal_scored_against1 + goal_scored_against2) as goal_against
+from away_stats
+join home_stats
+on home_team_id=away_team_id
+) p
+join Teams t
+on t.team_id=p.team_id
+order by points desc, goal_diff desc, team_name asc
