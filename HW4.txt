@@ -1,0 +1,25 @@
+Q13. League statistics
+
+with cte AS (
+    select home_team_id as t1, away_team_id as t2, home_team_goals as g1,  away_team_goals as g2 from Matches
+    UNION ALL
+SELECT away_team_id as t1, home_team_id as t2, away_team_goals as g1, home_team_goals as g2 from matches)
+
+select team_name, count(c.t1) as matches_played, sum(
+    case 
+        when c.g1>c.g2 then 3
+        when c.g1=c.g2 then 1
+        else 0
+    end
+) AS points, sum(c.g1) AS goal_for, sum(c.g2) AS goal_against, sum(c.g1)-sum(c.g2) as goal_diff from teams JOIN CTE C on team_id=c.t1 group by c.t1 order by points desc, goal_diff DESC, team_name   
+
+
+Q14. Sales Person
+
+ select s.name from SalesPerson s where s.sales_id NOT IN(
+     select o.sales_id from orders o LEFT JOIN Company c on o.com_id= c.com_id where c.name='RED'
+ )
+
+select name from salesperson where sales_id not in (select o.sales_id from company c
+       inner join orders o on o.com_id = c.com_id
+       where c.name = 'RED')
