@@ -1,0 +1,21 @@
+# Write your MySQL query statement be
+
+with senior_sal_table as (
+select employee_id, experience, (sum(salary) over (partition by experience order by salary)) as senior_salary
+from Candidates
+where experience='Senior'),
+
+junior_sal_table as (
+  select employee_id, experience, (sum(salary) over (partition by experience order by salary)) as junior_salary
+from Candidates
+where experience='Junior'
+)
+
+select 'Senior' as experience, count(*) as accepted_candidates   from senior_sal_table where senior_salary<=70000
+
+union all
+
+select 'Junior' as experience, count(*) as accepted_candidates
+from junior_sal_table 
+where junior_salary <
+(70000 - (select ifnull(max(senior_salary),0) from senior_sal_table where senior_salary<=70000))
