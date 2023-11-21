@@ -1,0 +1,10 @@
+# Write your MySQL query statement below
+With CTE AS (
+    Select requester_id as r1, accepter_id as r2 from requestaccepted
+    Union all
+    Select accepter_id as r1, requester_id as r2 from requestaccepted
+)
+Select c.r1 as id, count(c.r1) as num from CTE c 
+group by c.r1 
+order by num DESC 
+Limit 1;
