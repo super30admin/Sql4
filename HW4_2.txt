@@ -1,0 +1,16 @@
+Q17- Friend Requests II
+
+select *, count(id) as num from (select requester_id as id from RequestAccepted 
+union all
+select accepter_id as id from RequestAccepted) as a 
+group by id
+order by num desc limit 1
+
+# using cte
+with cte as (
+    select requester_id as r1 from RequestAccepted
+    union all
+    select accepter_id as r1 from RequestAccepted )
+   
+ select c.r1 as id, count(c.r1) as num from cte c
+ group by c.r1 order by num DESC limit 1
