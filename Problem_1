@@ -1,0 +1,18 @@
+# Write your MySQL query statement below
+WITH CTE AS (
+    select employee_id, experience, sum(salary) over (partition by experience order by salary) as 'rsum'
+    from Candidates
+),
+acte as (
+    select 70000 - IFNULL(MAX(rsum),0) as 'remaining'
+    from CTE
+    where experience = 'Senior' and rsum <= 70000
+)
+
+Select 'Senior' as experience, count(employee_id) as accepted_candidates
+from CTE
+where experience = 'Senior' and rsum <= 70000
+union
+select 'Junior' as experience, count(employee_id) as accepted_candidates
+from CTE
+where experience = 'Junior' and rsum <= (select remaining from acte)
