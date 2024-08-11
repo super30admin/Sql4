@@ -1,0 +1,12 @@
+with allusers as (
+select requester_id as id
+from RequestAccepted 
+union all
+select accepter_id as id
+from RequestAccepted 
+)
+select id, count(*) as num
+from allusers
+group by id
+order by 2 desc
+limit 1
