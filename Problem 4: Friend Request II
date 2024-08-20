@@ -1,0 +1,22 @@
+# Write your MySQL query statement below
+WITH CTE AS (
+    SELECT requester_id AS 'r1' from RequestAccepted
+    UNION ALL
+    SELECT accepter_id AS 'r1' from RequestAccepted
+),
+ACTE AS(
+    SELECT r1 AS 'id', COUNT(r1) AS 'num' FROM CTE GROUP BY 1
+    #Can also use PARTITION BY
+    #SELECT DISTINCT r1 AS 'id', COUNT(r1) OVER(PARTITION BY r1) AS 'num' FROM CTE
+)
+SELECT id, num FROM ACTE WHERE num=(SELECT max(num) FROM ACTE);
+#Can also use LIMIT
+#SELECT id, num FROM ACTE ORDER BY num DESC LIMIT 1;
+
+#Approach-2 Using one CTE
+WITH CTE AS(
+    SELECT requester_id AS 'id', (SELECT COUNT(*) FROM RequestAccepted WHERE id = requester_id OR id = accepter_id) AS 'num' FROM RequestAccepted
+    UNION ALL
+    SELECT accepter_id AS 'id', (SELECT COUNT(*) FROM RequestAccepted WHERE id = requester_id OR id = accepter_id) AS 'num' FROM RequestAccepted
+)
+SELECT * FROM CTE ORDER BY num DESC LIMIT 1;
