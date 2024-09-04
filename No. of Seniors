@@ -1,0 +1,17 @@
+WITH CTE AS (
+Select employee_id, experience, SUM(salary) Over (Partition By experience order by salary) as 'rsum'
+From Candidates
+)
+
+Select  'Senior' as experience, count(employee_id) as 'accepted_candidates'
+From CTE
+Where  experience='Senior' AND rsum  <= 70000
+Union 
+Select 'Junior' as experience, count(employee_id) as 'accepted_candidates'
+From CTE
+Where experience='Junior' AND rsum 
+<= (
+Select 70000 - IFNULL(max(rsum),0)
+From CTE
+Where experience= 'Senior' and rsum<=70000
+);

@@ -1,0 +1,16 @@
+With CTE as (
+    Select requester_id as 'r1'
+    from RequestAccepted
+    Union ALL
+    Select accepter_id as 'r1'
+    from RequestAccepted
+),
+ ACTE as (
+    Select r1 as 'id', count(r1) as 'num'
+    from CTE
+    Group by r1
+)
+Select id,num
+from ACTE
+order by num desc
+limit 1;
