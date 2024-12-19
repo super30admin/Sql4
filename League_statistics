@@ -1,0 +1,19 @@
+with cte as (
+    select home_team_id as 'r1', home_team_goals as 'g1', away_team_goals as 'g2' from  matches 
+    union all
+    select away_team_id as 'ri', away_team_goals as 'g1', home_team_goals as 'g2' from matches
+)
+#select distinct r1, count(r1) over(partition by r1) as 'matches_played' from cte
+
+select t.team_name, count(c.r1) as 'matches_played', sum(
+    case 
+        when c.g1 > c.g2 then 3
+        when c.g1 = c.g2 then 1
+        else 0
+        end
+    ) as 'points' ,
+    sum(c.g1) as 'goal_for' , sum(c.g2) as 'goal_against', sum(c.g1) - sum(c.g2) as 'goal_diff' from teams t inner join cte c on t.team_id = c.r1
+    group by c.r1
+    order by points desc,
+    goal_diff desc,
+    t.team_name;
