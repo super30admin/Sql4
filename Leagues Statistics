@@ -1,0 +1,42 @@
+WITH cte AS (
+    SELECT 
+        m.home_team_id AS team_id, 
+        m.home_team_goals AS goals_for, 
+        m.away_team_goals AS goals_against,
+        CASE 
+            WHEN m.home_team_goals > m.away_team_goals THEN 3
+            WHEN m.home_team_goals = m.away_team_goals THEN 1
+            ELSE 0
+        END AS points
+    FROM matches m
+    UNION ALL
+    SELECT 
+        m.away_team_id AS team_id, 
+        m.away_team_goals AS goals_for, 
+        m.home_team_goals AS goals_against,
+        CASE 
+            WHEN m.away_team_goals > m.home_team_goals THEN 3
+            WHEN m.away_team_goals = m.home_team_goals THEN 1
+            ELSE 0
+        END AS points
+    FROM matches m
+)
+SELECT 
+    t.team_name, 
+    COUNT(c.team_id) AS matches_played, 
+    SUM(COALESCE(c.points, 0)) AS points, 
+    SUM(COALESCE(c.goals_for, 0)) AS goal_for, 
+    SUM(COALESCE(c.goals_against, 0)) AS goal_against, 
+    SUM(COALESCE(c.goals_for, 0) - COALESCE(c.goals_against, 0)) AS goal_diff
+FROM 
+    teams t
+LEFT JOIN 
+    cte c 
+ON 
+    t.team_id = c.team_id
+GROUP BY 
+    t.team_name
+HAVING 
+    COUNT(c.team_id) > 0 -- Exclude teams with no matches
+ORDER BY 
+    points DESC, goal_diff DESC, t.team_name ;

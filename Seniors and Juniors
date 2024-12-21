@@ -1,0 +1,8 @@
+with cte as (
+     select employee_id,experience,salary, sum(salary)over(partition by experience order by salary,employee_id) as r_sum
+from Candidates
+)
+
+select  'Senior' as experience, count(employee_id) as accepted_candidates from cte where r_sum <= 70000 and experience = 'Senior' 
+UNION
+select 'Junior' as experience, count(employee_id)as accepted_candidates from cte where experience = 'Junior' and r_sum <= (select 70000 - ifnull(max(r_sum),0) as sum from cte where experience = 'Senior' and r_sum <= 70000)
