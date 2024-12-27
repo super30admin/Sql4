@@ -1,0 +1,12 @@
+WITH CTE AS 
+(select accepter_id as id ,count(*) as  no_of_time from RequestAccepted
+group by accepter_id
+union all 
+select requester_id as id ,count(*) as  no_of_time from RequestAccepted
+group by requester_id)
+
+SELECT ID,
+SUM(NO_OF_TIME) AS NUM 
+FROM CTE
+GROUP BY ID 
+ORDER BY NUM DESC LIMIT 1;

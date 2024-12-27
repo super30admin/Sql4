@@ -1,0 +1,11 @@
+with CTE1 AS (
+SELECT employee_id , experience,salary, sum(salary) over(partition by experience order by salary) cummulative_salary
+from candidates
+),
+CTE2 AS (
+SELECT coalesce(70000 - coalesce(max(cummulative_salary),0),0) remaining from CTE1 where cummulative_salary <70000 and experience='Senior'
+)
+
+select 'Senior' as experience,count(distinct employee_id) as accepted_candidates from CTE1 WHERE cummulative_salary <70000 and experience='Senior'
+union 
+select 'Junior' as experience ,count(distinct employee_id) as accepted_candidates from CTE1 WHERE experience='Junior' and cummulative_salary < (select remaining from CTE2);
