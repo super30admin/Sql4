@@ -1,0 +1,120 @@
+Problem 1 : The Number of Seniors and Juniors to Join the Company
+WITH CTE AS (
+  select 
+    employee_id, 
+    experience, 
+    sum(salary) over(
+      partition by experience 
+      order by 
+        salary rows between unbounded preceding 
+        and current row
+    ) as rsum 
+  from 
+    Candidates
+), 
+remainbudget as (
+  select 
+    70000 - isnull(
+      max(rsum), 
+      0
+    ) as remaining_budget 
+  from 
+    CTE 
+  where 
+    experience = 'senior' 
+    and rsum <= 70000
+) 
+select 
+  'senior' as experience, 
+  count(*) as accepted_candidates 
+from 
+  CTE 
+where 
+  experience = 'senior' 
+  and rsum <= 70000 
+union 
+select 
+  'junior' as experience, 
+  count(*) as accepted_candidates 
+from 
+  CTE 
+where 
+  experience = 'junior' 
+  and rsum <= (
+    select 
+      remaining_budget 
+    from 
+      remainbudget
+  );
+
+
+
+
+
+PROBLEM2: League Statistics
+
+WITH CTE AS (
+    SELECT 
+        home_team_id   AS r1,
+        away_team_id   AS r2,
+        home_team_goals AS g1,
+        away_team_goals AS g2
+    FROM Matches
+    UNION ALL
+    SELECT
+        away_team_id   AS r1,
+        home_team_id   AS r2,
+        away_team_goals AS g1,
+        home_team_goals AS g2
+    FROM Matches
+)
+SELECT
+    t.team_name,
+    COUNT(c.r1)                                                    AS 'matches_played',
+    SUM(CASE 
+          WHEN c.g1 >  c.g2 THEN 3 
+          WHEN c.g1 =  c.g2 THEN 1 
+          ELSE 0 
+        END)                                                         AS 'points',
+    SUM(c.g1)                                                      AS 'goal_for',
+    SUM(c.g2)                                                      AS 'goal_against',
+    SUM(c.g1) - SUM(c.g2)                                          AS 'goal_diff'
+FROM Teams t
+LEFT JOIN CTE c
+  ON t.team_id = c.r1
+GROUP BY
+    t.team_name
+ORDER BY
+    points     DESC,
+    goal_diff  DESC,
+    t.team_name ASC;
+
+
+
+
+PROBLEM 3: Sales Person
+
+	SELECT
+  s.name
+FROM
+  SalesPerson s
+  LEFT JOIN Orders o  ON s.sales_id = o.sales_id
+  LEFT JOIN Company c ON o.com_id = c.com_id
+GROUP BY
+  s.name
+HAVING
+  SUM(CASE WHEN c.name = 'RED' THEN 1 ELSE 0 END) = 0;
+
+
+
+
+Problem 4 : Friend Requests II
+
+ with cte as( select requester_id as r1 from RequestAccepted
+  union all
+  select accepter_id as r1 from RequestAccepted
+),
+ acte as
+  (select cte.r1 as ID, count(*) as num from cte group by cte.r1)
+
+  select top 1 * from acte order by num desc
