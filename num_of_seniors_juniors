@@ -1,0 +1,30 @@
+WITH cte AS (
+    SELECT  employee_id,
+            experience,
+            SUM(salary) AS salary,
+            SUM(salary) OVER(PARTITION BY experience ORDER BY salary, employee_id) AS r_sum
+    FROM candidates
+    -- WHERE experience = 'Senior'
+    GROUP BY 1,2
+),
+senior AS (
+    SELECT  'Senior' AS experience,
+            r_sum
+    FROM cte
+    WHERE experience = 'Senior'
+    AND r_sum <= 70000
+),
+junior AS(
+    SELECT  'Junior' AS experience,
+            r_sum
+    FROM cte
+    WHERE experience = 'Junior'
+    AND r_sum <= (SELECT 70000-IFNULL(MAX(r_sum),0) FROM senior)
+)
+SELECT  experience,
+        COUNT(*) AS accepted_candidates
+FROM senior
+UNION ALL 
+SELECT  experience,
+        COUNT(*) AS accepted_candidates
+FROM junior;
