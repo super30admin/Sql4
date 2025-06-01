@@ -1,0 +1,47 @@
+Sql4
+1 Problem 1 : The Number of Seniors and Juniors to Join the Company (https://leetcode.com/problems/the-number-of-seniors-and-juniors-to-join-the-company/)
+
+# Write your MySQL query statement below
+with cte as (select employee_id, experience, sum(salary) over (partition by experience order by salary,employee_id) as 'rsum' from candidates)
+
+select 'Senior' as experience, count(employee_id) as 'accepted_candidates' from cte where experience ='Senior' AND rsum <= '70000'
+UNION
+select 'Junior' as experience, count(employee_id) as 'accepted_candidates' from cte where experience ='Junior' AND rsum <= (select 70000 -IFNULL(MAX(rsum),0) from cte where experience ='Senior' AND cte.rsum <= '70000');
+
+2 Problem 2: League Statistics (https://leetcode.com/problems/league-statistics/ )
+
+# Write your MySQL query statement below
+WITH CTE AS
+( 
+select home_team_id as 'r1', home_team_goals as 'g1', away_team_goals as 'g2'from Matches
+union all
+select away_team_id as 'r1', away_team_goals as 'g1', home_team_goals as 'g2'from Matches
+)
+
+select  t.team_name, count(c.r1) as 'matches_played',
+SUM(
+    CASE
+        WHEN c.g1>c.g2 THEN 3
+        WHEN c.g1=c.g2 THEN 1
+        ELSE 0
+    END
+) as 'points' ,sum(c.g1) as 'goal_for',sum(c.g2) as 'goal_against', sum(c.g1)-sum(c.g2) as 'goal_diff' from CTE c inner join Teams t on c.r1=t.team_id group by c.r1 ORDER BY points DESC, goal_diff DESC, t.team_name ;
+
+
+3 Problem 3 : Sales Person (https://leetcode.com/problems/sales-person/ )
+
+# Write your MySQL query statement below
+Select name from SalesPerson where sales_id NOT IN(
+select o.sales_id from Orders o join Company c on c.com_id = o.com_id where c.name='RED');
+
+
+4 Problem 4 : Friend Requests II (https://leetcode.com/problems/friend-requests-ii-who-has-the-most-friends/ )
+
+# Write your MySQL query statement below
+WITH CTE AS (
+    select requester_id as 'id' from RequestAccepted 
+    UNION ALL
+    select accepter_id as 'id' from RequestAccepted
+)
+
+select id, count(id) as 'num' from CTE group by id order by num desc limit 1;
